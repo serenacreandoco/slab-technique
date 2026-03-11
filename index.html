@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technique 02: Slabs — @serenacreando</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Instrument+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F0E9DF;--bg2:#E8E0D4;--card:#FAF6F0;--ink:#1A1208;--ink2:#3A2818;--mid:#4A3728;--lo:#7A6858;--terra:#B85535;--t2:#D4845E;--bord:rgba(26,18,8,0.12);}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--ink);font-family:'Instrument Sans',sans-serif;font-weight:300;overflow-x:hidden;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:var(--bg2);}::-webkit-scrollbar-thumb{background:var(--terra);}
+#prog{position:fixed;top:0;left:0;height:2px;background:var(--terra);width:0%;z-index:1000;transition:width .1s;}
+nav{position:fixed;top:2px;left:0;right:0;z-index:500;padding:18px 56px;display:flex;align-items:center;justify-content:space-between;background:rgba(240,233,223,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--bord);}
+.nav-logo{font-family:'Playfair Display',serif;font-style:italic;font-size:15px;color:var(--ink);}
+.nav-series{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--lo);display:flex;align-items:center;gap:12px;}
+.nav-series span{color:var(--terra);}
+
+/* HERO */
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;position:relative;overflow:hidden;}
+.hero-left{background:var(--ink);padding:120px 56px 80px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden;}
+.hero-slab-bg{position:absolute;inset:0;pointer-events:none;}
+.slab-rect{position:absolute;background:rgba(184,85,53,.05);border:1px solid rgba(184,85,53,.1);}
+.sr1{width:340px;height:220px;top:60px;right:-60px;transform:rotate(-8deg);}
+.sr2{width:240px;height:160px;top:120px;right:60px;transform:rotate(4deg);}
+.sr3{width:160px;height:100px;top:180px;right:140px;transform:rotate(-3deg);background:rgba(184,85,53,.08);}
+.hero-num{font-family:'Playfair Display',serif;font-size:200px;font-weight:900;color:rgba(240,233,223,.04);position:absolute;top:60px;left:40px;line-height:1;pointer-events:none;}
+.hero-left-content{position:relative;z-index:2;}
+.hero-series{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--terra);display:flex;align-items:center;gap:10px;margin-bottom:28px;}
+.hero-series::before{content:'';width:24px;height:1px;background:var(--terra);}
+.hero-h1{font-family:'Playfair Display',serif;font-size:clamp(52px,6vw,88px);font-weight:900;line-height:.92;letter-spacing:-.03em;color:var(--bg);margin-bottom:32px;}
+.hero-h1 em{display:block;font-style:italic;color:var(--terra);}
+.hero-sub{font-size:14px;color:rgba(240,233,223,.5);line-height:1.9;max-width:360px;border-left:2px solid rgba(184,85,53,.3);padding-left:18px;margin-bottom:40px;}
+.hero-facts{display:flex;gap:28px;}
+.hf{text-align:center;}
+.hf-num{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--terra);display:block;}
+.hf-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(240,233,223,.35);margin-top:2px;display:block;}
+.hero-right{background:var(--bg);display:flex;flex-direction:column;justify-content:center;padding:120px 56px 80px;position:relative;overflow:hidden;}
+.hero-right-bg{position:absolute;right:-80px;bottom:-80px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(184,85,53,.1) 0%,transparent 65%);pointer-events:none;}
+.hero-quote{font-family:'Playfair Display',serif;font-size:clamp(20px,2.5vw,32px);font-style:italic;font-weight:400;color:var(--ink);line-height:1.4;margin-bottom:16px;}
+.hero-quote-source{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--lo);}
+.hero-divider{width:36px;height:1px;background:var(--terra);margin:28px 0;}
+.hero-intro{font-size:14px;color:var(--mid);line-height:1.95;}
+
+/* CHAPTER BAND */
+.ch-band{background:var(--ink2);padding:64px 56px;display:flex;align-items:center;gap:36px;}
+.ch-n{font-family:'Playfair Display',serif;font-size:clamp(60px,10vw,120px);font-weight:900;color:var(--terra);opacity:.5;line-height:1;flex-shrink:0;}
+.ch-text h2{font-family:'Playfair Display',serif;font-size:clamp(24px,3.5vw,44px);color:var(--bg);font-weight:400;line-height:1.1;}
+.ch-text h2 em{font-style:italic;color:var(--t2);}
+.ch-text p{font-size:13px;color:rgba(240,233,223,.45);margin-top:8px;line-height:1.8;max-width:580px;}
+
+/* SECTIONS */
+.sec{padding:96px 56px;}
+.sec-inner{max-width:1100px;margin:0 auto;}
+.sec-tag{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--terra);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.sec-tag::before{content:'';width:20px;height:1px;background:var(--terra);}
+.sec-h2{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,56px);font-weight:400;line-height:1.05;margin-bottom:16px;}
+.sec-h2 em{font-style:italic;color:var(--terra);}
+.rule{width:36px;height:2px;background:var(--terra);margin-bottom:28px;}
+.sec-lead{font-size:16px;color:var(--mid);line-height:1.9;max-width:680px;margin-bottom:48px;}
+
+/* TIMELINE */
+.hist-timeline{position:relative;}
+.hist-timeline::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--bord);transform:translateX(-50%);}
+.ht-row{display:grid;grid-template-columns:1fr 60px 1fr;align-items:center;margin-bottom:48px;}
+.ht-left{text-align:right;padding-right:32px;}
+.ht-right{padding-left:32px;}
+.ht-dot{width:48px;height:48px;background:var(--card);border:2px solid var(--bord);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:10px;font-weight:700;color:var(--terra);position:relative;z-index:2;transition:.25s;cursor:default;}
+.ht-row:hover .ht-dot{background:var(--terra);color:var(--bg);border-color:var(--terra);}
+.ht-date{font-family:'Playfair Display',serif;font-size:18px;color:var(--terra);font-weight:700;display:block;margin-bottom:4px;}
+.ht-title{font-family:'Playfair Display',serif;font-size:16px;color:var(--ink);font-weight:400;margin-bottom:6px;}
+.ht-desc{font-size:13px;color:var(--mid);line-height:1.8;}
+
+/* TWO-TYPE COMPARISON */
+.slab-types{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:48px;}
+.slab-type{padding:40px 36px;border:1px solid var(--bord);}
+.slab-type.soft{background:var(--card);}
+.slab-type.hard{background:var(--ink2);}
+.slab-type.hard h3{color:var(--bg);}
+.slab-type.hard .st-sub{color:var(--t2);}
+.slab-type.hard p{color:rgba(240,233,223,.55);}
+.slab-type.hard .st-list li{color:rgba(240,233,223,.55);}
+.slab-type.hard .st-list li::before{color:var(--t2);}
+.st-label{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--terra);margin-bottom:16px;display:block;}
+.slab-type h3{font-family:'Playfair Display',serif;font-size:26px;font-weight:400;color:var(--ink);margin-bottom:4px;}
+.st-sub{font-size:12px;color:var(--lo);margin-bottom:20px;display:block;}
+.slab-type p{font-size:13px;color:var(--mid);line-height:1.9;margin-bottom:16px;}
+.st-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.st-list li{font-size:13px;color:var(--mid);line-height:1.7;padding-left:18px;position:relative;}
+.st-list li::before{content:'→';position:absolute;left:0;color:var(--terra);font-size:11px;}
+
+/* SCIENCE */
+.science-strip{background:var(--ink);padding:80px 56px;}
+.ss-inner{max-width:1100px;margin:0 auto;}
+.ss-inner .sec-tag{color:var(--t2);}
+.ss-inner .sec-tag::before{background:var(--t2);}
+.ss-inner .sec-h2{color:var(--bg);}
+.ss-inner .rule{background:var(--t2);}
+.ss-inner .sec-lead{color:rgba(240,233,223,.5);}
+.science-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:40px;}
+.sci-card{background:rgba(240,233,223,.04);border:1px solid rgba(240,233,223,.08);padding:32px 28px;transition:.25s;}
+.sci-card:hover{background:rgba(240,233,223,.07);}
+.sci-icon{font-size:32px;display:block;margin-bottom:16px;}
+.sci-card h3{font-family:'Playfair Display',serif;font-size:19px;color:var(--bg);font-weight:400;margin-bottom:10px;}
+.sci-card p{font-size:13px;color:rgba(240,233,223,.5);line-height:1.85;}
+
+/* STEPS */
+.steps-wrap{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;margin-top:48px;}
+.step-card{background:var(--card);border:1px solid var(--bord);padding:32px 28px;position:relative;overflow:hidden;transition:.25s;}
+.step-card:hover{transform:translateY(-3px);box-shadow:0 10px 36px rgba(26,18,8,.08);}
+.step-num-bg{position:absolute;right:-12px;top:-12px;font-family:'Playfair Display',serif;font-size:96px;font-weight:900;color:rgba(184,85,53,.06);line-height:1;pointer-events:none;}
+.step-num{font-family:'Playfair Display',serif;font-size:12px;font-weight:700;color:var(--terra);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.step-num::after{content:'';flex:1;height:1px;background:rgba(184,85,53,.2);}
+.step-card h3{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;color:var(--ink);margin-bottom:10px;}
+.step-card p{font-size:13px;color:var(--mid);line-height:1.85;}
+.step-tip{margin-top:14px;padding:10px 14px;background:rgba(184,85,53,.07);border-left:2px solid var(--terra);font-size:12px;color:var(--mid);font-style:italic;}
+
+/* MISTAKES */
+.mistakes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:48px;}
+.mistake-card{padding:32px 28px;border:1px solid var(--bord);background:var(--card);position:relative;}
+.mistake-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--terra);opacity:.3;}
+.mistake-card.danger::before{background:#C43230;opacity:1;}
+.mistake-icon{font-size:28px;display:block;margin-bottom:14px;}
+.mistake-card h3{font-family:'Playfair Display',serif;font-size:18px;font-weight:400;color:var(--ink);margin-bottom:8px;}
+.mistake-card p{font-size:13px;color:var(--mid);line-height:1.8;}
+.mistake-fix{margin-top:14px;padding:10px 14px;background:rgba(184,85,53,.06);border-left:2px solid rgba(184,85,53,.3);font-size:12px;color:var(--mid);}
+.mistake-fix strong{color:var(--terra);font-weight:500;}
+
+/* ARCHITECTURE SECTION */
+.arch-sec{background:var(--ink2);padding:96px 56px;}
+.arch-inner{max-width:1100px;margin:0 auto;}
+.arch-inner .sec-tag{color:var(--t2);}
+.arch-inner .sec-tag::before{background:var(--t2);}
+.arch-inner .sec-h2{color:var(--bg);}
+.arch-inner .rule{background:var(--t2);}
+.arch-inner .sec-lead{color:rgba(240,233,223,.5);}
+.arch-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:48px;}
+.a-panel{padding:36px 32px;border:1px solid rgba(240,233,223,.08);}
+.a-panel.light{background:rgba(240,233,223,.04);}
+.a-panel.accent{background:rgba(184,85,53,.12);border-color:rgba(184,85,53,.2);}
+.a-panel h3{font-family:'Playfair Display',serif;font-size:22px;font-weight:400;color:var(--bg);margin-bottom:4px;}
+.a-sub{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--t2);margin-bottom:18px;display:block;}
+.a-panel p{font-size:13px;color:rgba(240,233,223,.55);line-height:1.9;}
+.a-stat{display:inline-block;font-family:'Playfair Display',serif;font-size:40px;color:var(--t2);margin:12px 0 4px;}
+.a-stat-label{font-size:11px;color:rgba(240,233,223,.35);letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:16px;}
+.tag-row{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;}
+.tag-item{background:rgba(240,233,223,.06);border:1px solid rgba(240,233,223,.12);padding:8px 14px;font-size:11px;color:rgba(240,233,223,.5);letter-spacing:.1em;}
+
+/* FORMS */
+.forms-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:48px;}
+.form-card{background:var(--card);border:1px solid var(--bord);padding:28px 22px;text-align:center;transition:.25s;cursor:default;}
+.form-card:hover{border-color:var(--terra);}
+.form-shape{width:64px;height:64px;margin:0 auto 16px;border-radius:4px;border:2px solid rgba(184,85,53,.3);display:flex;align-items:center;justify-content:center;font-size:26px;}
+.form-card h3{font-family:'Playfair Display',serif;font-size:15px;font-weight:400;color:var(--ink);margin-bottom:6px;}
+.form-card p{font-size:12px;color:var(--lo);line-height:1.7;}
+
+/* INFO / WARN */
+.info-box{background:rgba(184,85,53,.06);border:1px solid rgba(184,85,53,.2);border-left:3px solid var(--terra);padding:20px 24px;margin:28px 0;}
+.info-box strong{color:var(--terra);font-size:10px;letter-spacing:.18em;text-transform:uppercase;display:block;margin-bottom:6px;}
+.info-box p{font-size:13px;color:var(--mid);line-height:1.75;}
+.warn-box{background:rgba(200,50,30,.05);border:1px solid rgba(200,50,30,.2);border-left:3px solid #C43230;padding:20px 24px;margin:28px 0;}
+.warn-box strong{color:#C43230;font-size:10px;letter-spacing:.18em;text-transform:uppercase;display:block;margin-bottom:6px;}
+.warn-box p{font-size:13px;color:var(--mid);line-height:1.75;}
+
+/* TICKER */
+.ticker-wrap{background:var(--terra);overflow:hidden;padding:14px 0;}
+.ticker{display:flex;animation:tick 55s linear infinite;white-space:nowrap;}
+.ticker span{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.9);padding:0 48px;}
+.ticker span::before{content:'◆';margin-right:48px;opacity:.5;}
+@keyframes tick{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* CLOSING */
+.closing{background:var(--ink);padding:100px 56px;text-align:center;position:relative;overflow:hidden;}
+.closing-glow{position:absolute;inset:0;background:radial-gradient(ellipse 55% 55% at 50% 50%,rgba(184,85,53,.1) 0%,transparent 65%);pointer-events:none;}
+.closing-inner{position:relative;z-index:2;max-width:680px;margin:0 auto;}
+.closing h2{font-family:'Playfair Display',serif;font-size:clamp(32px,5vw,56px);font-weight:400;color:var(--bg);margin-bottom:20px;line-height:1.1;}
+.closing h2 em{font-style:italic;color:var(--t2);}
+.closing p{font-size:15px;color:rgba(240,233,223,.5);line-height:1.9;margin-bottom:36px;}
+.closing-brand{margin-top:48px;font-family:'Playfair Display',serif;font-style:italic;font-size:13px;color:rgba(240,233,223,.2);}
+footer{padding:28px 56px;background:var(--ink);border-top:1px solid rgba(240,233,223,.06);display:flex;justify-content:space-between;align-items:center;}
+.f-brand{font-family:'Playfair Display',serif;font-style:italic;font-size:14px;color:var(--t2);}
+.f-note{font-size:10px;letter-spacing:.12em;color:rgba(240,233,223,.2);}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.rd1{transition-delay:.1s;}.rd2{transition-delay:.2s;}.rd3{transition-delay:.3s;}.rd4{transition-delay:.4s;}
+
+@media(max-width:900px){
+  nav{padding:14px 20px;}
+  .nav-series{display:none;}
+  .hero{grid-template-columns:1fr;}
+  .hero-left{padding:100px 24px 60px;min-height:55vh;}
+  .hero-right{padding:56px 24px;}
+  .sec,.ch-band,.science-strip,.arch-sec,.closing,footer{padding-left:24px;padding-right:24px;}
+  .hist-timeline::before{left:24px;transform:none;}
+  .ht-row{grid-template-columns:48px 1fr;}
+  .ht-left{display:none;}
+  .ht-right{padding-left:20px;}
+  .science-grid,.mistakes-grid,.forms-grid,.arch-grid,.steps-wrap,.slab-types{grid-template-columns:1fr;}
+  .ch-band{flex-direction:column;gap:12px;}
+}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+
+<nav>
+  <div class="nav-logo">@serenacreando</div>
+  <div class="nav-series">Hand-Building Series <span>02 / 04</span> Slabs</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-slab-bg">
+      <div class="slab-rect sr1"></div>
+      <div class="slab-rect sr2"></div>
+      <div class="slab-rect sr3"></div>
+    </div>
+    <div class="hero-num">02</div>
+    <div class="hero-left-content">
+      <div class="hero-series">Hand-Building Series · Technique 02</div>
+      <h1 class="hero-h1">The<em>Slab</em>Technique</h1>
+      <p class="hero-sub">Clay flattened into sheets, cut and assembled into form. The technique that built the first walls — and still builds the most unexpected shapes.</p>
+      <div class="hero-facts">
+        <div class="hf"><span class="hf-num">7,000</span><span class="hf-label">Years of slabs</span></div>
+        <div class="hf"><span class="hf-num">2</span><span class="hf-label">Slab types</span></div>
+        <div class="hf"><span class="hf-num">∞</span><span class="hf-label">Angular freedom</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-right-bg"></div>
+    <p class="hero-quote">"A slab of clay is a blank page. What you do with the edges is the whole story."</p>
+    <p class="hero-quote-source">— @serenacreando</p>
+    <div class="hero-divider"></div>
+    <p class="hero-intro">Slab building is the technique of architecture — flat planes assembled into three-dimensional form. Where pinching gives you intimacy and coiling gives you height, slab gives you geometry: angles, edges, planes, and surfaces that can be decorated before the piece is even assembled. It is the most design-oriented of the hand-building techniques, and the one that crosses most naturally into sculpture, tile, and functional ware.</p>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span>Soft Slab</span><span>Hard Slab</span><span>Drape & Form</span><span>Score & Slip</span><span>Even Thickness</span><span>Leather Hard</span><span>Reinforce the Corners</span><span>Slow Drying</span><span>Soft Slab</span><span>Hard Slab</span><span>Drape & Form</span><span>Score & Slip</span><span>Even Thickness</span><span>Leather Hard</span><span>Reinforce the Corners</span><span>Slow Drying</span>
+  </div>
+</div>
+
+<!-- CHAPTER I: HISTORY -->
+<div class="ch-band">
+  <div class="ch-n">I</div>
+  <div class="ch-text">
+    <h2>The Oldest <em>Flat Surface</em></h2>
+    <p>The first potters at Hassuna didn't start with coils or pinching — they started with slabs. Clay pressed flat, shaped, and fired. The technique that gave us tiles, bricks, and walls.</p>
+  </div>
+</div>
+
+<section class="sec">
+  <div class="sec-inner">
+    <div class="sec-tag reveal">History</div>
+    <h2 class="sec-h2 reveal rd1">From the first flat pot<br>to <em>ceramic architecture</em></h2>
+    <div class="rule reveal rd2"></div>
+    <p class="sec-lead reveal rd3">Slab construction may be the oldest ceramic technique of all. The earliest known pottery — found at the Hassuna site in present-day Iraq — was hand-formed from slabs. That was 7,000 years ago. But the story of slabs goes well beyond vessels.</p>
+
+    <div class="hist-timeline">
+      <div class="ht-row reveal">
+        <div class="ht-left">
+          <span class="ht-date">7,000 BCE</span>
+          <div class="ht-title">Hassuna, Mesopotamia — The First Pottery</div>
+          <p class="ht-desc">The earliest confirmed functional pottery found at the Hassuna site in modern Iraq was hand-formed from slabs of clay — undecorated, unglazed, low-fired red-brown pots. Simple. Direct. These weren't the result of artistic ambition; they were answers to a practical question: how do you carry water? How do you store grain? The flat slab was the first answer the human hand found.</p>
+        </div>
+        <div class="ht-dot">𒀭</div>
+        <div class="ht-right"></div>
+      </div>
+
+      <div class="ht-row reveal">
+        <div class="ht-left"></div>
+        <div class="ht-dot">🔷</div>
+        <div class="ht-right">
+          <span class="ht-date">4,000 BCE</span>
+          <div class="ht-title">Egypt — Tiles, Panels & Funerary Ware</div>
+          <p class="ht-desc">Egyptian potters elevated slab construction far beyond vessels. Ceramic tiles and decorative wall panels — flat slabs glazed in brilliant blue made from copper — lined the walls of tombs and palaces. The Egyptians were the first to develop a true glaze for flat ceramic surfaces: a turquoise faience coating applied to slab tiles that has remained vivid for 6,000 years. Large slab-built rectangular coffins and funerary containers demonstrate that Egyptian craftspeople understood both the structural and surface possibilities of the flat clay sheet.</p>
+        </div>
+      </div>
+
+      <div class="ht-row reveal">
+        <div class="ht-left">
+          <span class="ht-date">3,000–500 BCE</span>
+          <div class="ht-title">Mesopotamia & Babylon — The Birth of the Tile</div>
+          <p class="ht-desc">The ruins of Babylon contain ceramic tiles made using slab technique — found in pyramids and ancient city walls, they represent the origin of architectural ceramics. Babylonian craftspeople carved wooden molds in relief to impress patterns into soft slabs before firing. Once dried and baked, the impressed surface could be filed and refined. This was the birth of the tile as a decorative architectural object — a tradition that traveled through Islamic Spain, Renaissance Italy, and eventually the entire world.</p>
+        </div>
+        <div class="ht-dot">🏛️</div>
+        <div class="ht-right"></div>
+      </div>
+
+      <div class="ht-row reveal">
+        <div class="ht-left"></div>
+        <div class="ht-dot">🏺</div>
+        <div class="ht-right">
+          <span class="ht-date">700–400 BCE</span>
+          <div class="ht-title">Ancient Greece — Vessels, Urns & Architecture</div>
+          <p class="ht-desc">Greek potters used slab construction in combination with wheel-throwing to produce large storage vessels, ceremonial urns, and architectural elements including roofing tiles and decorative antefixes. The famous black-figure and red-figure vessels that defined Greek art were frequently assembled from slab-built and thrown sections combined. The Romans inherited and spread this tradition across Europe as they conquered territories — introducing tile-making to Britain, France, and Spain through their construction of roads, baths, and public buildings.</p>
+        </div>
+      </div>
+
+      <div class="ht-row reveal">
+        <div class="ht-left">
+          <span class="ht-date">700–1400 CE</span>
+          <div class="ht-title">Islamic World — Majolica & the Glazed Tile</div>
+          <p class="ht-desc">It was through Islamic civilization that the glazed slab tile became a true art form. Potters in Persia, North Africa, and Spain developed intricate geometric and floral designs applied to flat slab tiles with brilliant metallic glazes. These tiles — known as majolica when they reached Italy — traveled with trade and conquest from the Near East into Spain, then into Southern Italy, and up through the Renaissance. The floors and walls of churches, palaces, and public buildings across Italy still carry these slab-built glazed surfaces. Every bathroom tile in the world today is a direct descendant of this tradition.</p>
+        </div>
+        <div class="ht-dot">✦</div>
+        <div class="ht-right"></div>
+      </div>
+
+      <div class="ht-row reveal">
+        <div class="ht-left"></div>
+        <div class="ht-dot">🌎</div>
+        <div class="ht-right">
+          <span class="ht-date">Pre-Columbian Era</span>
+          <div class="ht-title">Mesoamerica — Maya Slab Vessels & Ritual Objects</div>
+          <p class="ht-desc">The Maya used both coil and slab building to create their extraordinary ceramics. Slab-built vessels were used for ritual objects, portable storage, and architectural elements — including the elaborate ceramic pipes found in Hopewellian earthworks. Contemporary Maya potters like Patricia and Rodrigo Morales continue this tradition in Yucatán, building slab and coil work using techniques derived directly from the study of pre-Columbian artifacts. Their pieces sell in international galleries as direct continuations of a craft tradition over a thousand years old.</p>
+        </div>
+      </div>
+
+      <div class="ht-row reveal">
+        <div class="ht-left">
+          <span class="ht-date">1950s–Today</span>
+          <div class="ht-title">Modern Studio Ceramics — Slab as Expression</div>
+          <p class="ht-desc">In the 20th century, ceramicists like Peter Voulkos transformed slab building from a production technique into a vehicle for abstract expression. Voulkos used raw, torn slabs assembled into large sculptural forms — deliberately rough, deliberately unfired-looking — and changed what ceramics was allowed to be. Today, slab building is understood as the most architecturally versatile of the hand-building techniques, equally at home in tableware, wall installation, and large-scale sculpture.</p>
+        </div>
+        <div class="ht-dot">✦</div>
+        <div class="ht-right"></div>
+      </div>
+    </div>
+
+    <div class="info-box reveal">
+      <strong>Every Tile You've Ever Seen</strong>
+      <p>The bathroom tile. The kitchen backsplash. The floor of every church, mosque, and public building built before 1900. Every one of them is a slab of clay, flattened, cut, and fired. Slab technique didn't just shape vessels — it shaped the interior surfaces of civilization itself. When you work with a slab today, you're working in the oldest architectural tradition in the world.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CHAPTER II: TWO TYPES OF SLAB -->
+<div class="ch-band">
+  <div class="ch-n">II</div>
+  <div class="ch-text">
+    <h2>Soft vs. Hard:<br><em>Two Different Techniques</em></h2>
+    <p>Slab building isn't one technique — it's two, with different rules, different possibilities, and different timing. Knowing which to use is half the skill.</p>
+  </div>
+</div>
+
+<section class="sec">
+  <div class="sec-inner">
+    <div class="sec-tag reveal">The Two Slab Types</div>
+    <h2 class="sec-h2 reveal rd1">Soft slab and hard slab:<br><em>different tools,</em> different forms</h2>
+    <div class="rule reveal rd2"></div>
+    <p class="sec-lead reveal rd3">The most important decision in slab building happens before you even pick up your clay: soft or hard? Fresh-rolled slabs and leather-hard slabs behave completely differently and are suited to completely different forms. Mixing them up is the most common beginner mistake.</p>
+
+    <div class="slab-types">
+      <div class="slab-type soft reveal rd1">
+        <span class="st-label">Type One</span>
+        <h3>Soft Slab</h3>
+        <span class="st-sub">Fresh-rolled · Flexible · Fluid forms</span>
+        <p>A soft slab is rolled and used immediately — or with minimal drying. It's flexible, pliable, and responds like heavy cloth. It can be draped, folded, curved, and pressed into molds.</p>
+        <p>The softness is its power: soft slabs take on organic curves and fluid edges that would crack in a stiffer piece. But that same softness makes them difficult to handle — a large soft slab will stretch, flop, and collapse under its own weight.</p>
+        <ul class="st-list">
+          <li>Best for smaller pieces, bowls, plates</li>
+          <li>Ideal for draping over hump molds or into slump molds</li>
+          <li>Can join without slip if clay is very fresh and compressed well</li>
+          <li>Great for organic, curved, asymmetric forms</li>
+          <li>Higher risk of warping as it dries — needs slow, even drying</li>
+        </ul>
+      </div>
+      <div class="slab-type hard reveal rd2">
+        <span class="st-label">Type Two</span>
+        <h3>Hard (Stiff) Slab</h3>
+        <span class="st-sub">Leather-hard · Rigid · Angular precision</span>
+        <p>A hard slab has been left to dry to leather-hard — still cool to the touch, still slightly pliable, but firm enough to hold its own weight. Working with it has been compared to working with heavy paper or card.</p>
+        <p>This is the slab for architectural forms: boxes, cylinders, angular vases, wall tiles. The firmness gives you clean, precise edges and crisp corners that a soft slab could never hold. Always requires full score & slip for every join.</p>
+        <ul class="st-list">
+          <li>Best for larger pieces, boxes, vases, tiles</li>
+          <li>Essential for angular forms — edges stay sharp</li>
+          <li>Must always score & slip every join — no exceptions</li>
+          <li>Reinforce interior corners with a blended coil</li>
+          <li>Can be cut with a fettling knife for precise shapes</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="info-box reveal">
+      <strong>The Hybrid Approach</strong>
+      <p>Many experienced potters use a hybrid: they drape a soft slab over a mold, let it firm up to leather-hard on the support, then remove it and assemble with other leather-hard sections. This gives you the curved shape-taking of a soft slab with the structural precision of a hard one. Note: if a soft slab is left wrapped around a rigid support as it dries, it can crack — because shrinking clay needs to move freely. Always use soft supports (sponge, foam, paper) or remove the slab from rigid molds once it's leather-hard but before it dries further.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CHAPTER III: SCIENCE -->
+<div class="ch-band">
+  <div class="ch-n">III</div>
+  <div class="ch-text">
+    <h2>The <em>Physics</em> of the Flat Sheet</h2>
+    <p>Why does a slab warp? Why do corners crack? The answers are in clay's molecular behavior — and once you understand them, the fixes become obvious.</p>
+  </div>
+</div>
+
+<section class="science-strip">
+  <div class="ss-inner">
+    <div class="sec-tag reveal">Science</div>
+    <h2 class="sec-h2 reveal rd1">What's happening<br><em>inside the clay</em></h2>
+    <div class="rule reveal rd2"></div>
+    <p class="sec-lead reveal rd3">A rolled slab introduces stress into the clay that wasn't there before. Understanding that stress — where it lives and how it moves — is the difference between a slab that survives the kiln and one that warps on the shelf.</p>
+
+    <div class="science-grid">
+      <div class="sci-card reveal rd1">
+        <span class="sci-icon">🧬</span>
+        <h3>Rolling Stress & Memory</h3>
+        <p>When you roll clay flat, you compress the particles in one direction. The clay "remembers" this compression. As it dries, those stressed particles try to relax and return to their original position — causing the slab to curl. The fix is to roll your slab from both sides: flip it and roll again. This compresses from both directions equally, and the stresses cancel each other out. Always roll on canvas or fabric to allow slight movement and prevent sticking.</p>
+      </div>
+      <div class="sci-card reveal rd2">
+        <span class="sci-icon">💧</span>
+        <h3>Why Slabs Warp</h3>
+        <p>A slab left on an absorbent surface (wood, plasterboard) loses moisture from the bottom faster than the top. The bottom shrinks while the top is still wet — the slab curves upward like a book left in rain. The fix: always dry slabs between two sheets of canvas or drywall on both sides, or flip them periodically as they stiffen. The goal is even moisture loss from all surfaces simultaneously. Slow, even drying is everything in slab work.</p>
+      </div>
+      <div class="sci-card reveal rd3">
+        <span class="sci-icon">📐</span>
+        <h3>Why Corners Are Weak</h3>
+        <p>A corner is where two slabs meet at an angle — two different pieces of clay with two different moisture levels and drying rates. As each shrinks, they pull in different directions at the join. This is why corners crack. The fix is threefold: score and slip properly, blend the interior corner fully, and add a rolled coil blended into the interior angle. That coil acts as a structural fillet — distributing stress over a wider area rather than concentrating it at the join line.</p>
+      </div>
+      <div class="sci-card reveal rd1">
+        <span class="sci-icon">⚖️</span>
+        <h3>Thickness Consistency</h3>
+        <p>Uneven slab thickness is the primary cause of cracking in fired work. A thick section retains heat longer in the kiln and cools more slowly than a thin section. The resulting differential contraction tears the clay apart. Use wooden guide sticks (spacers) of equal height on both sides of your clay when rolling — this gives you guaranteed consistent thickness throughout. 6–12mm is the standard range; 8–10mm is ideal for most hand-built work.</p>
+      </div>
+      <div class="sci-card reveal rd2">
+        <span class="sci-icon">🔬</span>
+        <h3>Decoration Before Assembly</h3>
+        <p>Slab technique's unique advantage is that you can fully decorate a flat surface before it becomes a three-dimensional form. Impress textures, carve designs, apply underglaze, stamp patterns — all while the slab is still flat on the table and every surface is accessible. Once assembled into a box or cylinder, many of those surfaces become difficult or impossible to reach. Flat is the moment of maximum artistic access: use it.</p>
+      </div>
+      <div class="sci-card reveal rd3">
+        <span class="sci-icon">🏗️</span>
+        <h3>Match Moisture Levels</h3>
+        <p>When joining two pieces of clay, they must be at the same moisture level. If one piece is leather-hard and the other is still soft, they will dry and shrink at different rates — and the join will crack. Wait until all sections you're assembling have reached the same consistency before joining them. This is the rule of matched states: never join dry to wet, leather to fresh, or stiff to soft.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHAPTER IV: TECHNIQUE -->
+<div class="ch-band">
+  <div class="ch-n">IV</div>
+  <div class="ch-text">
+    <h2>Step by <em>Step</em></h2>
+    <p>Eight steps from a block of clay to a finished slab-built piece. The sequence works for any form — box, cylinder, bowl, tile, or sculpture.</p>
+  </div>
+</div>
+
+<section class="sec">
+  <div class="sec-inner">
+    <div class="sec-tag reveal">Technique</div>
+    <h2 class="sec-h2 reveal rd1">How to build<br>with <em>slabs</em></h2>
+    <div class="rule reveal rd2"></div>
+    <p class="sec-lead reveal rd3">Slab work rewards planning. Unlike pinching or coiling — where the form can evolve as you go — slab building benefits from knowing your final shape before you start cutting. A paper template is not cheating. It is professional practice.</p>
+
+    <div class="steps-wrap">
+      <div class="step-card reveal rd1">
+        <div class="step-num-bg">1</div>
+        <div class="step-num">Step 01</div>
+        <h3>Wedge & Prepare</h3>
+        <p>Wedge your clay thoroughly to remove all air bubbles and create a uniform consistency. For slab work, a smooth, even clay body matters more than in pinching — any variation in texture or air pockets will show up as inconsistent thickness or cracking once the slab is rolled flat. Pat the clay into a rough flat block shape before rolling to make the process easier.</p>
+        <div class="step-tip">Adding 20–30% grog to your clay body will significantly increase resistance to warping and cracking in slabs — especially for larger pieces.</div>
+      </div>
+      <div class="step-card reveal rd2">
+        <div class="step-num-bg">2</div>
+        <div class="step-num">Step 02</div>
+        <h3>Roll Your Slab</h3>
+        <p>Place the clay on canvas or fabric. Set two wooden guide sticks (your desired thickness — 6 to 10mm) on either side of the clay. Roll with a rolling pin from the center outward, resting the pin on the guide sticks so it can't compress further. After the first passes, flip the slab over and roll again from the other side to equalize stress. Keep rolling canvas-side up to prevent sticking.</p>
+        <div class="step-tip">Roll in multiple directions — not just back and forth — to avoid creating a directional stress pattern that will cause warping later.</div>
+      </div>
+      <div class="step-card reveal rd3">
+        <div class="step-num-bg">3</div>
+        <div class="step-num">Step 03</div>
+        <h3>Decide: Soft or Hard</h3>
+        <p>Now make your key decision. If you're building curved or organic forms — bowls, draped pieces, fluid shapes — use the slab soft: work with it immediately or after just a few minutes of firming. If you're building angular pieces — boxes, rectangular vases, tiles — let the slabs firm to leather-hard before cutting and assembling. Cover with plastic if waiting; uncover and let breathe if drying to leather-hard.</p>
+        <div class="step-tip">To test for leather-hard: the slab should feel cool but not cold to the touch, hold its shape when stood upright, and no longer stick to your fingers.</div>
+      </div>
+      <div class="step-card reveal rd4">
+        <div class="step-num-bg">4</div>
+        <div class="step-num">Step 04</div>
+        <h3>Decorate the Flat Surface</h3>
+        <p>This is slab building's superpower: every surface is accessible while the piece is still flat. Now is the time to impress textures with stamps, rollers, or found objects. Carve sgraffito lines. Apply a layer of colored slip or underglaze. Add sprigged clay details. Once the piece is assembled into its final form, many of these surfaces will be difficult or impossible to reach. Use the flat stage fully.</p>
+        <div class="step-tip">Apply surface decoration when the slab is at the consistency you'll be working with — soft for soft slab, leather-hard for hard slab. Wet decoration on dry clay will crack.</div>
+      </div>
+      <div class="step-card reveal rd1">
+        <div class="step-num-bg">5</div>
+        <div class="step-num">Step 05</div>
+        <h3>Cut Your Shapes</h3>
+        <p>Use a paper template for precision — trace around it with a needle tool or fettling knife. For soft slabs, a wire cutter or thin knife works well. For leather-hard slabs, a fettling knife gives the cleanest cut. Cut edges at a slight bevel (angled inward) rather than straight — this increases the surface area of the join and creates a stronger bond. Cut all your pieces before assembling so they can be at matched moisture levels.</p>
+        <div class="step-tip">Cut slightly larger than your template on curved or soft slabs — they shrink as they firm up. Trim to final size once leather-hard.</div>
+      </div>
+      <div class="step-card reveal rd2">
+        <div class="step-num-bg">6</div>
+        <div class="step-num">Step 06</div>
+        <h3>Score, Slip & Assemble</h3>
+        <p>Score every surface that will be joined — shallow crosshatch marks with a serrated tool, not deep grooves with a needle. Apply slip to both scored surfaces, let it soak in for 30 seconds, then press together. Rock the joint gently back and forth to increase surface contact — the slip will squeeze out at the edges when the bond is good. Support the assembled piece with props (foam, crumpled paper, wooden blocks) until leather-hard.</p>
+        <div class="step-tip">A bevel-cut edge naturally creates a wider join surface. Combined with a reinforcing interior coil, this is the strongest possible slab corner.</div>
+      </div>
+      <div class="step-card reveal rd3">
+        <div class="step-num-bg">7</div>
+        <div class="step-num">Step 07</div>
+        <h3>Reinforce Interior Corners</h3>
+        <p>This is the step most beginners skip — and the reason their boxes crack. Roll a thin coil of soft clay and press it into every interior corner and join. Use a wooden dowel, brush handle, or your finger to blend the coil into both walls simultaneously. This creates a structural fillet: a triangular clay filler that distributes drying stress over a wider area and dramatically increases corner strength. Do this while the joins are still slightly damp.</p>
+        <div class="step-tip">The coil in the corner doesn't need to be large. A 5–6mm coil blended fully into both walls does the job. What matters is thorough blending, not volume.</div>
+      </div>
+      <div class="step-card reveal rd4">
+        <div class="step-num-bg">8</div>
+        <div class="step-num">Step 08</div>
+        <h3>Dry Slowly & Evenly</h3>
+        <p>Slab work is more vulnerable to drying damage than any other hand-building technique. Cover the assembled piece loosely with plastic — not sealed tight, which traps moisture and causes mold, but draped to slow the drying. If one part of the piece dries faster (top, corners, edges), mist lightly with a spray bottle to equalize. The goal is every part of the piece reaching leather-hard at the same time, then bone-dry at the same time.</p>
+        <div class="step-tip">Dry slab pieces on fabric or canvas, not on wood or a solid board. The fabric allows some airflow underneath and prevents the base from drying faster than the walls.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHAPTER V: MISTAKES -->
+<div class="ch-band">
+  <div class="ch-n">V</div>
+  <div class="ch-text">
+    <h2>The Six <em>Classic</em> Mistakes</h2>
+    <p>Slab mistakes tend to announce themselves late — in the kiln, or when you pick the piece up. Catch them early by knowing what to watch for.</p>
+  </div>
+</div>
+
+<section class="sec">
+  <div class="sec-inner">
+    <div class="sec-tag reveal">Mistakes & Fixes</div>
+    <h2 class="sec-h2 reveal rd1">What goes wrong — and<br><em>exactly</em> how to fix it</h2>
+    <div class="rule reveal rd2"></div>
+    <p class="sec-lead reveal rd3">Most slab failures are drying failures. The clay itself isn't the problem — the conditions around it are. Control the drying and you control the outcome.</p>
+
+    <div class="mistakes-grid">
+      <div class="mistake-card danger reveal rd1">
+        <span class="mistake-icon">📐</span>
+        <h3>Uneven Slab Thickness</h3>
+        <p>Thick and thin sections dry at different rates and fire at different temperatures. The result is warping, cracking, and pieces that fall apart in the kiln. This is the most structurally damaging mistake in slab work.</p>
+        <div class="mistake-fix"><strong>Fix:</strong> Always use wooden guide sticks when rolling. Roll in multiple directions. Check thickness with your fingertips — you can feel unevenness before it becomes a problem.</div>
+      </div>
+      <div class="mistake-card reveal rd2">
+        <span class="mistake-icon">🌀</span>
+        <h3>Slab Warping While Drying</h3>
+        <p>The finished slab curls upward or twists. Usually caused by rolling in one direction only (directional stress) or losing moisture faster from one surface (uneven contact with the work surface).</p>
+        <div class="mistake-fix"><strong>Fix:</strong> Roll from both sides. Dry between two sheets of canvas. Flip periodically as the slab stiffens. If it's already warping slightly, gently press flat while still leather-hard — bone-dry warps can't be fixed.</div>
+      </div>
+      <div class="mistake-card reveal rd3">
+        <span class="mistake-icon">💥</span>
+        <h3>Corners Cracking</h3>
+        <p>The most frustrating slab failure — a piece that looks perfect until it cracks at every join in the kiln. Almost always caused by skipping the interior reinforcement coil or joining slabs at different moisture levels.</p>
+        <div class="mistake-fix"><strong>Fix:</strong> Always blend a coil into interior corners. Always join at matched moisture levels. Score and slip every single surface that touches another piece of clay.</div>
+      </div>
+      <div class="mistake-card reveal rd1">
+        <span class="mistake-icon">⚡</span>
+        <h3>Drying Too Fast</h3>
+        <p>The piece develops hairline cracks along joins, edges, or flat surfaces. The clay contracted faster on the outside than the inside could keep up with.</p>
+        <div class="mistake-fix"><strong>Fix:</strong> Cover loosely with plastic. Keep away from drafts, heat, and direct sunlight. Mist problem areas lightly if they're drying faster than the rest of the piece.</div>
+      </div>
+      <div class="mistake-card reveal rd2">
+        <span class="mistake-icon">🔀</span>
+        <h3>Joining Different Moisture Levels</h3>
+        <p>One wall is leather-hard, the other is still soft and flexible. The soft section shrinks more as it dries — pulling on the firmer section and tearing the join apart.</p>
+        <div class="mistake-fix"><strong>Fix:</strong> Wait until all pieces are at the same consistency before assembling. If one piece has dried too much, wrap it in a damp cloth briefly to bring the moisture level up.</div>
+      </div>
+      <div class="mistake-card reveal rd3">
+        <span class="mistake-icon">🖊️</span>
+        <h3>Decorating at the Wrong Stage</h3>
+        <p>Applying wet slip to leather-hard clay, or pressing stamps into nearly-dry surfaces — the decoration cracks off or causes the slab to crack in reaction to the added moisture.</p>
+        <div class="mistake-fix"><strong>Fix:</strong> Match your decoration to the clay's stage. Wet-on-wet: fine. Leather-hard decoration: apply and compress immediately. Never add moisture to clay that has dried past leather-hard.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHAPTER VI: THE TILE & ARCHITECTURE -->
+<div class="ch-band">
+  <div class="ch-n">VI</div>
+  <div class="ch-text">
+    <h2>When Clay Became<em>Architecture</em></h2>
+    <p>Slab is the only hand-building technique that crossed from vessels into the built environment. The same flat sheet that makes a bowl also makes a tile — and a tile can cover an entire wall.</p>
+  </div>
+</div>
+
+<section class="arch-sec">
+  <div class="arch-inner">
+    <div class="sec-tag reveal">Slab Beyond the Vessel</div>
+    <h2 class="sec-h2 reveal rd1">From bowl to building:<br><em>the slab's wider world</em></h2>
+    <div class="rule reveal rd2"></div>
+    <p class="sec-lead reveal rd3">No other ceramic hand-building technique has shaped the physical world the way slab construction has. Every floor, every wall, every façade covered in ceramic tile is the slab technique at scale.</p>
+
+    <div class="arch-grid">
+      <div class="a-panel light reveal rd1">
+        <h3>The Tile Lineage</h3>
+        <span class="a-sub">4,000 BCE → Today</span>
+        <p>Ceramic tiles were first made 4,000 years ago by pressing clay flat, cutting it into shape, and firing it. The Babylonians added carved wooden molds to impress patterns. The Egyptians added copper-blue glaze. Islamic craftspeople in the 8th century elevated this into an art of extraordinary geometric precision. Italian Renaissance artists — Donatello, Della Robbia — refined it further. And every single bathroom, kitchen, and subway wall in the modern world is descended from that first flat slab in Mesopotamia.</p>
+        <div class="tag-row">
+          <div class="tag-item">Babylon</div>
+          <div class="tag-item">Egypt</div>
+          <div class="tag-item">Persia</div>
+          <div class="tag-item">Moorish Spain</div>
+          <div class="tag-item">Italian Majolica</div>
+        </div>
+      </div>
+      <div class="a-panel accent reveal rd2">
+        <h3>Peter Voulkos</h3>
+        <span class="a-sub">United States · 1924–2002</span>
+        <p>The ceramicist who tore up the rulebook. Voulkos used raw, slashed, and stacked slabs to create monumental abstract sculptures in the 1950s — pieces that looked more like abstract expressionist painting than pottery. He deliberately left join lines visible, incorporated torn edges, and built forms that defied every convention of what ceramic slab work was "supposed" to be.</p>
+        <span class="a-stat">1959</span>
+        <span class="a-stat-label">Year of his groundbreaking MoMA exhibition</span>
+        <p>His work permanently expanded the definition of ceramics. After Voulkos, a slab of clay was not just a building material — it was a mark, a gesture, a surface.</p>
+      </div>
+      <div class="a-panel accent reveal rd3">
+        <h3>Slab as Surface</h3>
+        <span class="a-sub">The decorative advantage</span>
+        <p>Slab's deepest artistic advantage is surface access. Before a slab becomes a form, it is entirely open: you can roll texture into it with any object, carve through it to create translucency, apply colored clays or slips in any pattern. Contemporary ceramicists use slab surfaces as canvases — painting with underglazes, transferring images, building up multiple fired layers of color and texture. No other technique gives you this kind of flat, uninterrupted surface to work on before the piece exists in three dimensions.</p>
+        <div class="tag-row">
+          <div class="tag-item">Stamped texture</div>
+          <div class="tag-item">Carved sgraffito</div>
+          <div class="tag-item">Underglaze painting</div>
+          <div class="tag-item">Image transfer</div>
+        </div>
+      </div>
+      <div class="a-panel light reveal rd4">
+        <h3>Slab in the Home</h3>
+        <span class="a-sub">Where it lives in daily life</span>
+        <p>More than any other hand-building technique, slab construction produces the objects most integrated into daily domestic life. Plates. Tiles. Serving boards. Rectangular planters. Mugs with flat faceted walls. Butter dishes. Picture frames. Every flat or angular ceramic object you own was built with a slab or a slab-adjacent process. Slab work is the technique most naturally suited to functional ware that feels designed rather than thrown.</p>
+        <div class="tag-row">
+          <div class="tag-item">Plates & platters</div>
+          <div class="tag-item">Tiles & panels</div>
+          <div class="tag-item">Mugs & cups</div>
+          <div class="tag-item">Vases & planters</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FORMS -->
+<section class="sec">
+  <div class="sec-inner">
+    <div class="sec-tag reveal">Forms & Possibilities</div>
+    <h2 class="sec-h2 reveal rd1">Eight forms to<br><em>build</em> with slabs</h2>
+    <div class="rule reveal rd2"></div>
+    <p class="sec-lead reveal rd3">Slab is the most formally versatile hand-building technique. The shapes it allows — angular, flat, geometric, draped, or sculpted — are unavailable to pinching and coiling. Start with the forms below and push further from there.</p>
+
+    <div class="forms-grid">
+      <div class="form-card reveal rd1">
+        <div class="form-shape">🍽️</div>
+        <h3>Plates & Platters</h3>
+        <p>The most natural slab form. Roll, cut, drape over a mold, and smooth. Decorate the flat surface fully before forming. The ideal beginner first project.</p>
+      </div>
+      <div class="form-card reveal rd2">
+        <div class="form-shape">📦</div>
+        <h3>Boxes & Lidded Forms</h3>
+        <p>The archetypal hard slab project. Five walls cut to precise measurements, assembled with blended corner coils. Clean, architectural, satisfying.</p>
+      </div>
+      <div class="form-card reveal rd3">
+        <div class="form-shape">🏺</div>
+        <h3>Faceted Vases</h3>
+        <p>Cut flat panels and assemble into multi-sided vessels. The flat walls are perfect for surface decoration. Slab vases have a graphic, designed quality that thrown work can't replicate.</p>
+      </div>
+      <div class="form-card reveal rd4">
+        <div class="form-shape">🪴</div>
+        <h3>Angular Planters</h3>
+        <p>Rectangular or hexagonal slab planters with drainage holes. Hard slab gives clean edges and structural strength. A practical beginner project with immediate use.</p>
+      </div>
+      <div class="form-card reveal rd1">
+        <div class="form-shape">🎨</div>
+        <h3>Wall Tiles & Panels</h3>
+        <p>The oldest use of slab technique. Flat tiles decorated with stamps, carving, or underglaze. Can be assembled into large wall installations when fired and mounted.</p>
+      </div>
+      <div class="form-card reveal rd2">
+        <div class="form-shape">🫙</div>
+        <h3>Mugs & Cups</h3>
+        <p>Roll a slab, cut a rectangle, curl it into a cylinder, attach a handle. Slab mugs have flat walls that can be fully decorated — a signature look in contemporary ceramics.</p>
+      </div>
+      <div class="form-card reveal rd3">
+        <div class="form-shape">🌊</div>
+        <h3>Draped Bowls</h3>
+        <p>Soft slabs draped over a hump mold or into a slump mold. Let gravity shape the clay into organic, natural curves. Remove from mold at leather-hard and refine the rim.</p>
+      </div>
+      <div class="form-card reveal rd4">
+        <div class="form-shape">🗿</div>
+        <h3>Sculptural Forms</h3>
+        <p>Slabs torn, assembled, and stacked into abstract or representational sculpture. The Peter Voulkos tradition. No rules — only structure and intention.</p>
+      </div>
+    </div>
+
+    <div class="info-box reveal">
+      <strong>Air Dry Clay Note</strong>
+      <p>All slab principles transfer directly to air-dry clay. For soft slabs, use immediately after rolling — air-dry clay dries faster than fired clay, so work quickly. For hard slabs, allow to firm slightly before assembling. Use water or a thick clay slurry for slip. Reinforce corners with blended coils just as you would with any fired clay. The structural and drying rules are identical — if anything, air-dry clay rewards attention to slow drying even more, since it can't be re-fired if it cracks.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span>Roll Both Sides</span><span>Match Moisture Levels</span><span>Reinforce the Corners</span><span>Score & Slip</span><span>Decorate Flat First</span><span>Dry Slowly</span><span>Roll Both Sides</span><span>Match Moisture Levels</span><span>Reinforce the Corners</span><span>Score & Slip</span><span>Decorate Flat First</span><span>Dry Slowly</span>
+  </div>
+</div>
+
+<!-- CLOSING -->
+<section class="closing">
+  <div class="closing-glow"></div>
+  <div class="closing-inner">
+    <h2>Every flat surface<br>is a <em>decision</em><br>before it's a form.</h2>
+    <p>The slab starts as a blank. Before it's a bowl or a box or a tile, it's an open surface — fully accessible, ready for whatever mark you want to make. That is the technique's gift: it gives you the object before the object exists, while you can still change everything.</p>
+    <div class="closing-brand">@serenacreando — Hand-Building Series 02/04</div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-brand">Serena Creando</div>
+  <div class="f-note">Método Serena Pro · Hand-Building Series · Technique 02</div>
+</footer>
+
+<script>
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const s = document.documentElement.scrollTop;
+  const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  prog.style.width = (s / h * 100) + '%';
+});
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
